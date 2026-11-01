@@ -1,0 +1,8 @@
+FONTES — NOVO PROJETO NBA LIVE 18
+
+Base do runtime: shadPS4 oficial, commit 3eecea94ddaca360b19f4b800523b609a8b2ffcc (pre-release de 26/10/2026), com submódulos fixados pelo próprio commit.
+Origem da integração host: projeto Court 16 V1.00-C; as adaptações específicas de CUSA01933 ainda estão em revisão para serem removidas/substituídas antes de uma build executável do Live 18.
+
+A pasta ainda é uma base de migração e não deve ser usada para iniciar o CUSA06321. Consulte docs/PLANO-NBA-LIVE18.md. Não inclua dumps, módulos de firmware, chaves, saves, logs ou crash dumps no controle de versão ou em pacotes.
+
+A base shadPS4 está licenciada sob GPL-2.0-or-later. Preserve LICENSE, LICENSES/ e THIRD-PARTY-NOTICES.txt.

@@ -1,0 +1,14 @@
+diff --git a/src/stream.h b/src/stream.h
+index 31c2680..3b6ba0c 100644
+--- a/src/stream.h
++++ b/src/stream.h
+@@ -10,7 +10,8 @@
+ #include <span>
+ #include <cassert>
+ #include <concepts>
+-#include <cstddef>
++#include <cstddef>
++#include <cstdlib>
+ #include <functional>
+ #include <string_view>
+ #include <unordered_map>
