@@ -1,4 +1,4 @@
-# Prepare the pinned shadPS4 base reused from COURT 18, then build COURT 19.
+# Prepare the pinned shadPS4 source and build COURT 19, including the opt-in alpha-to-mask experiment.
 param(
     [string]$CompilerBin = 'C:\msys64\clang64\bin',
     [string]$BuildDirectory = 'build\nba19-prerelease-20261026-win'
@@ -8,6 +8,7 @@ $revision = '11557f2eb60b3b00712c8887c30852de7615d6df'
 $project = $PSScriptRoot
 $runtime = Join-Path $project 'third_party\shadPS4-prerelease-3eecea9'
 $build = Join-Path $project $BuildDirectory
+$jsonRevision = 'baba5db36f1747556499d70067a60b56d8989c06'
 
 $env:PATH = "$CompilerBin;$env:PATH"
 foreach ($tool in @('git','cmake','ninja','clang','clang++','pkg-config')) {
@@ -29,6 +30,11 @@ if ($head -ne $revision) {
 }
 & git -C $runtime submodule update --init --recursive
 if ($LASTEXITCODE -ne 0) { throw 'Falha ao obter os submódulos fixados por essa revisão.' }
+$json = Join-Path $runtime 'externals\json'
+& git -C $json fetch origin $jsonRevision
+if ($LASTEXITCODE -ne 0) { throw 'Falha ao obter a revisão fixada de externals/json.' }
+& git -C $json checkout --detach $jsonRevision
+if ($LASTEXITCODE -ne 0) { throw 'Falha ao selecionar a revisão fixada de externals/json.' }
 
 $cmakeArgs = @(
     '-S', $project, '-B', $build, '-G', 'Ninja',

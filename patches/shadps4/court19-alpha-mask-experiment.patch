@@ -1,0 +1,117 @@
+diff --git a/src/shader_recompiler/frontend/translate/export.cpp b/src/shader_recompiler/frontend/translate/export.cpp
+index 616c7c61..bd2b8f51 100644
+--- a/src/shader_recompiler/frontend/translate/export.cpp
++++ b/src/shader_recompiler/frontend/translate/export.cpp
+@@ -93,6 +93,30 @@ void Translator::ExportRenderTarget(const GcnInst& inst) {
+         }
+     }
+ 
++    // COURT 19 experiment: emulate DB_ALPHA_TO_MASK's 2x2 alpha dither for coverage draws.
++    // This is guarded by the runtime register and the opt-in environment variable.
++    if (mrt == IR::Attribute::RenderTarget0 && runtime_info.hw.fs.alpha_to_mask != 0 &&
++        !components[3].IsEmpty()) {
++        const u32 control = runtime_info.hw.fs.alpha_to_mask;
++        const f32 rounding = (control >> 16) & 1 ? 0.5f : 0.f;
++        std::array<f32, 4> thresholds{};
++        for (u32 i = 0; i < thresholds.size(); ++i) {
++            const u32 offset = (control >> (8 + 2 * i)) & 3;
++            thresholds[i] = 1.f - (static_cast<f32>(offset) + rounding) / 4.f;
++        }
++        const IR::U32 x = ir.BitwiseAnd(
++            ir.ConvertFToU(32, ir.GetAttribute(IR::Attribute::FragCoord, 0)), ir.Imm32(1u));
++        const IR::U32 y = ir.BitwiseAnd(
++            ir.ConvertFToU(32, ir.GetAttribute(IR::Attribute::FragCoord, 1)), ir.Imm32(1u));
++        const IR::U32 pixel = ir.BitwiseOr(x, ir.ShiftLeftLogical(y, ir.Imm32(1u)));
++        IR::F32 threshold = ir.Imm32(thresholds[3]);
++        for (s32 i = 2; i >= 0; --i) {
++            threshold = IR::F32{ir.Select(ir.IEqual(pixel, ir.Imm32(static_cast<u32>(i))),
++                                          ir.Imm32(thresholds[i]), threshold)};
++        }
++        ir.Discard(ir.FPLessThan(components[3], threshold));
++    }
++
+     // Metal seems to have an issue where 8-bit unorm/snorm/sRGB outputs to render target
+     // need a bias applied to round correctly; detect and set the flag for that here.
+     const auto needs_unorm_fixup = profile.needs_unorm_fixup &&
+diff --git a/src/shader_recompiler/runtime_info.h b/src/shader_recompiler/runtime_info.h
+index f2b34853..b564539f 100644
+--- a/src/shader_recompiler/runtime_info.h
++++ b/src/shader_recompiler/runtime_info.h
+@@ -211,6 +211,8 @@ struct HwFragmentRuntimeInfo {
+     u32 clip_distance_emulation : 1;
+     u32 depth_before_shader : 1;
+     u32 : 12;
++    /// COURT 19 experimental: DB_ALPHA_TO_MASK, enabled only for opted-in testing.
++    u32 alpha_to_mask{};
+ 
+     bool operator==(const HwFragmentRuntimeInfo& other) const noexcept {
+         return std::ranges::equal(color_buffers, other.color_buffers) &&
+@@ -221,6 +223,7 @@ struct HwFragmentRuntimeInfo {
+                dual_source_blending == other.dual_source_blending &&
+                clip_distance_emulation == other.clip_distance_emulation &&
+                depth_before_shader == other.depth_before_shader &&
++               alpha_to_mask == other.alpha_to_mask &&
+                std::ranges::equal(inputs.begin(), inputs.begin() + num_inputs, other.inputs.begin(),
+                                   other.inputs.begin() + num_inputs);
+     }
+diff --git a/src/video_core/renderer_vulkan/vk_pipeline_cache.cpp b/src/video_core/renderer_vulkan/vk_pipeline_cache.cpp
+index d13f9ccf..edbdfdcd 100644
+--- a/src/video_core/renderer_vulkan/vk_pipeline_cache.cpp
++++ b/src/video_core/renderer_vulkan/vk_pipeline_cache.cpp
+@@ -1,6 +1,7 @@
+ // SPDX-FileCopyrightText: Copyright 2024-2026 shadPS4 Emulator Project
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ 
++#include <cstdlib>
+ #include <ranges>
+ 
+ #include "common/hash.h"
+@@ -28,6 +29,15 @@ using Shader::SwStage;
+ 
+ constexpr static auto SpirvVersion1_6 = 0x00010600U;
+ 
++/// COURT 19: keep the alpha-to-mask experiment opt-in so the default runtime is unchanged.
++static bool Court19AlphaToMaskEnabled() {
++    static const bool enabled = [] {
++        const char* value = std::getenv("COURT19_ALPHA_TO_MASK");
++        return value && value[0] == '1';
++    }();
++    return enabled;
++}
++
+ constexpr static std::array DescriptorHeapSizes = {
+     vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 512},
+     vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, 8192},
+@@ -171,6 +181,17 @@ const Shader::RuntimeInfo& PipelineCache::BuildRuntimeInfo(HwStage stage, SwStag
+         info.hw.fs.num_inputs = regs.num_interp;
+         info.hw.fs.front_face_all_bits = regs.barycentric_control.front_face_all_bits;
+         info.hw.fs.depth_before_shader = regs.depth_shader_control.depth_before_shader;
++        const u32 alpha_to_mask =
++            regs.reg_array[AmdGpu::Regs::ContextRegWordOffset + 0x2DC];
++        const auto mrt0_format = regs.color_export_format.GetFormat(0);
++        const bool mrt0_has_alpha = mrt0_format != AmdGpu::ShaderExportFormat::Zero &&
++                                    mrt0_format != AmdGpu::ShaderExportFormat::R_32 &&
++                                    mrt0_format != AmdGpu::ShaderExportFormat::GR_32;
++        info.hw.fs.alpha_to_mask = Court19AlphaToMaskEnabled() && (alpha_to_mask & 1) &&
++                                   !regs.depth_shader_control.alpha_to_mask_disable &&
++                                   mrt0_has_alpha
++                                       ? alpha_to_mask & 0x1FF01
++                                       : 0;
+         info.hw.fs.num_samples =
+             regs.ps_input_addr.sample_coverage_ena && regs.ps_input_ena.sample_coverage_ena
+                 ? regs.aa_config.NumSamples()
+diff --git a/src/video_core/renderer_vulkan/vk_pipeline_serialization.cpp b/src/video_core/renderer_vulkan/vk_pipeline_serialization.cpp
+index 0488ddbb..fac16f62 100644
+--- a/src/video_core/renderer_vulkan/vk_pipeline_serialization.cpp
++++ b/src/video_core/renderer_vulkan/vk_pipeline_serialization.cpp
+@@ -12,8 +12,8 @@
+ 
+ namespace Serialization {
+ /* You should increment versions below once corresponding serialization scheme is changed. */
+-static constexpr u32 ShaderBinaryVersion = 11u;
+-static constexpr u32 ShaderMetaVersion = 6u;
++static constexpr u32 ShaderBinaryVersion = 12u; // COURT 19 experimental alpha-to-mask shader variant
++static constexpr u32 ShaderMetaVersion = 7u; // COURT 19 experimental alpha-to-mask runtime info
+ static constexpr u32 PipelineKeyVersion = 3u;
+ } // namespace Serialization
+ 

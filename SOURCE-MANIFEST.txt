@@ -1,9 +1,12 @@
-COURT 19 — MANIFESTO DA BUILD V1.00-A
+COURT 19 — MANIFESTO DA BUILD V1.00-A1 (pré-lançamento)
 
 Título validado: NBA LIVE 19, Title ID CUSA11355, APP_VER 01.25.
-Runtime shadPS4: v0.21.0, commit 11557f2eb60b3b00712c8887c30852de7615d6df.
-O runtime incorpora alterações locais listadas no patch COURT 19 e nos patches de compatibilidade para sirit, FDK-AAC e OpenAL.
-Base de launcher e integração: código COURT 19 neste repositório, com componentes reaproveitados do COURT 18 V1.01-B.
-Teste relatado: inicialização até partida e encerramento normal. Persistem artefatos gráficos visíveis durante partida.
-Filtro de título aplicado no launcher e no host: somente CUSA11355. CUSA06316 e CUSA08562 não são aceitos.
-Dump, módulos de firmware, chaves, saves e logs pessoais não integram o código-fonte nem a build pública.
+Runtime shadPS4 base: v0.21.0, commit 11557f2eb60b3b00712c8887c30852de7615d6df.
+Integração e runtime local: patches nba16-reusable-core-prerelease.patch e court19-alpha-mask-experiment.patch.
+Dependência externals/json: commit baba5db36f1747556499d70067a60b56d8989c06; fixado pelo script de compilação.
+Dependências Windows: patches de compatibilidade para sirit, FDK-AAC e OpenAL; veja THIRD-PARTY-NOTICES.txt.
+O experimento alpha-to-mask é opt-in pela variável de processo COURT19_ALPHA_TO_MASK=1, definido pelo VBS da build candidata.
+Teste relatado: uma partida de Carreira e uma sessão no Play Now sem reproduzir a transparência incorreta anterior. Um artefato verde na quadra ocorreu uma vez e não reapareceu no reteste; a rede continua visualmente pontilhada/transparente.
+Filtro no launcher/host: somente CUSA11355. CUSA06316 e CUSA08562 não são aceitos.
+Dump, módulos de firmware, chaves, saves, logs e dados privados não integram a distribuição.
+Para a distribuição GPL, o código-fonte correspondente inclui a revisão-base, os patches, os scripts e os avisos listados neste repositório. A build limpa deve ser recompilada e verificada antes da publicação do binário.

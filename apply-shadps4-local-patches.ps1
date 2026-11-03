@@ -1,6 +1,7 @@
 param(
-    [string]$ShadPS4Root = 'third_party\shadPS4',
-    [string]$CorePatch = 'patches\shadps4\nba16-reusable-core-prerelease.patch'
+    [string]$ShadPS4Root = 'third_party\shadPS4-prerelease-3eecea9',
+    [string]$CorePatch = 'patches\shadps4\nba16-reusable-core-prerelease.patch',
+    [string]$AlphaMaskPatch = 'patches\shadps4\court19-alpha-mask-experiment.patch'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,6 +23,7 @@ $corePatchPath = if ([System.IO.Path]::IsPathRooted($CorePatch)) {
 
 $patches = @(
     @{ Repo = ''; Patch = $corePatchPath },
+    @{ Repo = ''; Patch = $AlphaMaskPatch },
     @{ Repo = 'externals\sirit'; Patch = 'patches\shadps4\sirit-clang64.patch' },
     @{ Repo = 'externals\aacdec\fdk-aac'; Patch = 'patches\shadps4\fdk-aac-windows-x64.patch' },
     @{ Repo = 'externals\openal-soft'; Patch = 'patches\shadps4\openal-clang-libcpp.patch' }
