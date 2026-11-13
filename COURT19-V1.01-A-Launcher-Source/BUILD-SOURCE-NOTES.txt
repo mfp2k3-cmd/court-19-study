@@ -1,0 +1,18 @@
+COURT 19 Launcher V1.01-A — fontes correspondentes ao launcher incluído no Release
+
+Fonte: src/nba16_launcher.cpp; recurso do ícone: src/court_launcher_icon.rc; modelo usado no CMake: src/launcher_icon.rc.in. Os arquivos em assets/ são recursos externos do launcher; court19.ico também é incorporado ao executável.
+Licença do launcher: GPL-2.0-or-later (LICENSE).
+
+Toolchain usado na compilação:
+- MSYS2 CLANG64 clang++ 23.1.3 (x86_64-w64-windows-gnu)
+- MSYS2 CLANG64 windres GNU Binutils 2.47.20260726
+- C++20, -O2, subsistema Windows
+- Bibliotecas: comctl32, gdiplus, ole32, shell32, uuid
+
+Compilação equivalente, na raiz deste pacote:
+Push-Location src
+windres court_launcher_icon.rc -O coff -o ..\court_launcher_icon.o
+Pop-Location
+clang++ -std=c++20 -O2 -mwindows src\nba16_launcher.cpp court_launcher_icon.o -o "COURT 19 Launcher.exe" -lcomctl32 -lgdiplus -lole32 -lshell32 -luuid
+
+A fonte exata do runtime shadPS4 é o commit upstream 4788f0b108a6faaae5105f8ac88ef8e1935e2b22 e está apontada em SHADPS4-SOURCE.txt no pacote Windows. A reprodução byte a byte do launcher ainda não foi verificada.
