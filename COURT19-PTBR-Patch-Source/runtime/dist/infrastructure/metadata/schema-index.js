@@ -1,0 +1,36 @@
+import { EaFileError } from '../../domain/errors.js';
+export function indexMetadata(schema) {
+    const tables = new Map();
+    if (schema === undefined)
+        return tables;
+    if (!Array.isArray(schema.tables))
+        throw new EaFileError('INVALID_METADATA', 'metadata.tables must be an array.');
+    for (const table of schema.tables) {
+        validateName(table.shortName, table.name);
+        if (tables.has(table.shortName) || !Array.isArray(table.fields)) {
+            throw new EaFileError('INVALID_METADATA', `Duplicate table or invalid fields: ${table.shortName}.`);
+        }
+        const fields = new Map();
+        const names = new Set();
+        for (const field of table.fields) {
+            validateName(field.shortName, field.name);
+            if (fields.has(field.shortName) || names.has(field.name) || !isInt32(field.rangeLow) ||
+                (field.rangeHigh !== null && (!isInt32(field.rangeHigh) || field.rangeHigh < field.rangeLow))) {
+                throw new EaFileError('INVALID_METADATA', `Duplicate field or invalid range: ${table.shortName}.${field.shortName}.`);
+            }
+            fields.set(field.shortName, field);
+            names.add(field.name);
+        }
+        tables.set(table.shortName, { definition: table, fields });
+    }
+    return tables;
+}
+function validateName(shortName, name) {
+    if (typeof shortName !== 'string' || !/^[\x20-\x7e]{4}$/.test(shortName) ||
+        typeof name !== 'string' || name.trim().length === 0) {
+        throw new EaFileError('INVALID_METADATA', 'Metadata requires a four-byte ASCII shortname and a nonempty name.');
+    }
+}
+function isInt32(value) {
+    return Number.isInteger(value) && value >= -2147483648 && value <= 2147483647;
+}

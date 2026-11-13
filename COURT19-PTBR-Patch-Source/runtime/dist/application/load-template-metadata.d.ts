@@ -1,0 +1,12 @@
+import type { MetadataSchema } from '../domain/models.js';
+import type { EaFcVersion, TemplateDatabase } from '../domain/templates.js';
+import type { Fc25Metadata } from '../domain/fc25/schema.js';
+import type { Fc26Metadata } from '../domain/fc26/schema.js';
+import type { Fc27Metadata } from '../domain/fc27/schema.js';
+export declare function loadTemplateMetadata(version: 'FC 25', database?: undefined, maxFileBytes?: number): Promise<Fc25Metadata<'main'>>;
+export declare function loadTemplateMetadata<D extends TemplateDatabase | undefined>(version: 'FC 25', database: D, maxFileBytes?: number): Promise<Fc25Metadata<D extends TemplateDatabase ? D : 'main'>>;
+export declare function loadTemplateMetadata(version: 'FC 26', database?: undefined, maxFileBytes?: number): Promise<Fc26Metadata<'main'>>;
+export declare function loadTemplateMetadata<D extends TemplateDatabase | undefined>(version: 'FC 26', database: D, maxFileBytes?: number): Promise<Fc26Metadata<D extends TemplateDatabase ? D : 'main'>>;
+export declare function loadTemplateMetadata(version: 'FC 27', database?: undefined, maxFileBytes?: number): Promise<Fc27Metadata<'main'>>;
+export declare function loadTemplateMetadata<D extends TemplateDatabase | undefined>(version: 'FC 27', database: D, maxFileBytes?: number): Promise<Fc27Metadata<D extends TemplateDatabase ? D : 'main'>>;
+export declare function loadTemplateMetadata(version: EaFcVersion, database?: TemplateDatabase, maxFileBytes?: number): Promise<MetadataSchema>;

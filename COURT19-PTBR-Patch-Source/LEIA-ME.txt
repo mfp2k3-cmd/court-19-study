@@ -1,0 +1,31 @@
+COURT 19 — Instalador da tradução PT-BR
+
+COMO INSTALAR
+1. Extraia a pasta inteira do ZIP para um local do computador.
+2. Abra COURT19-Instalador-PTBR.exe.
+3. Em “Pasta do dump”, clique em “Localizar…” e selecione a pasta CUSA11355 do seu jogo.
+4. O instalador define automaticamente a pasta de mod que o shadPS4 reconhece: ao lado do dump, com o sufixo “-mods”.
+5. Clique em “Extrair e instalar tradução”.
+6. Ao terminar, feche e abra o jogo novamente para carregar a tradução. O shadPS4 detecta automaticamente a pasta “-mods”.
+7. Para voltar ao idioma original, localize o mesmo dump e clique em “Restaurar original”. Confirme a remoção da tradução.
+
+O instalador inclui Node.js 24 portátil. Não é necessário instalar Node.js nem configurar comandos.
+O dump e os arquivos BIG são apenas lidos. O banco de idioma é extraído temporariamente, alterado na pasta do mod escolhida e apagado da área temporária ao final. O jogo original não é sobrescrito. Se já existir um banco na pasta do mod, uma cópia de segurança será criada antes da substituição.
+
+IMPORTANTE
+- Windows 64 bits.
+- Selecione a pasta CUSA11355 do NBA LIVE 19, e não a pasta do shadPS4 nem a pasta “data”.
+- O conteúdo do jogo não vem incluído.
+- O instalador cria a sobreposição em data\kettle\loc\eng_us.db dentro da pasta CUSA11355-mods, ao lado do dump. Esse é o caminho de mods que o shadPS4 deste pacote reconhece.
+- O patch diferencial e os textos destinam-se a uso local. Não redistribua conteúdo do jogo.
+
+O botão “Restaurar original” remove o banco traduzido e os backups criados pelo instalador. Ele apaga as pastas vazias e, se não houver outros arquivos, também remove a pasta CUSA11355-mods. O dump permanece intacto. Outros arquivos presentes na pasta de mod são preservados.
+
+O patch coloca os textos PT-BR no banco de idioma inglês (eng_us.db). Selecionar “English” dentro do jogo não reverte esses textos enquanto a pasta de mod estiver ativa; use “Restaurar original” para remover o patch e voltar aos idiomas originais do dump.
+
+Se houver erro, leia a mensagem na janela do instalador. Ela informa o arquivo BIG/banco incompatível ou o caminho que não foi encontrado.
+
+Licenças das ferramentas incluídas:
+- Node.js: node\LICENSE.txt
+- eafc-db-kit: runtime\LICENSE-eafc-db-kit.txt
+- Dependências adicionais: runtime\third-party-licenses\
